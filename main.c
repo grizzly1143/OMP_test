@@ -104,7 +104,7 @@ void writePPM(const char *filename, PPMImage *img)
 
         // pixel data
         for (int i = 0; i < img->x; i++) {
-                fwrite(img->data[i], 3 * sizeof(unsigned char),img->y, fp);
+                fwrite(img->data[i], 3 ,img->y, fp);
         }
         fclose(fp);
 }
@@ -141,7 +141,7 @@ int main(){
         PPMImage *image;
         image = readPPM("img.ppm");
         PPMImage *out_image;
-        //writePPM("out.ppm",image);
+        writePPM("out.ppm",image);
         printf("Press any key...");
         getchar();
 }
