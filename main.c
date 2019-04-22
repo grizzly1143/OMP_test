@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 
 typedef struct {
         unsigned char red,green,blue;
@@ -110,40 +111,79 @@ void writePPM(const char *filename, PPMImage *img)
         fclose(fp);
 }
 
-/*void sobel_operator(PPMImage *img, PPMImage *img2)
+static PPMImage *sobel_operator(PPMImage *img)
 {
-        int i;
-        if(img){
-                int * pixels = malloc(9 * sizeof(unsigned char))
-                for(i = 0; i < img->x * img->y; i++){
-                        if (i % img->x == 0) {
-                                pixels[0] = 0;
-                                pixels[3] = 0;
-                                pixels[6] = 0;
-                        }
-                        if (i < img->x) {
-                                pixels[0] = 0;
-                                pixels[1] = 0;
-                                pixels[2] = 0;
-                        }
-                        if ((i % img->x) == img->x - 1) {
-                                pixels[2] = 0;
-                                pixels[5] = 0;
-                                pixels[8] = 0;
-                        }
-                        img->data[i].red=RGB_COMPONENT_COLOR-img->data[i].red;
-                        img->data[i].green=RGB_COMPONENT_COLOR-img->data[i].green;
-                        img->data[i].blue=RGB_COMPONENT_COLOR-img->data[i].blue;
+        PPMImage * img2 = (PPMImage *)malloc(sizeof(PPMImage));
+        img2->data = (PPMPixel **)malloc(img->x * sizeof(PPMPixel*));
+        for (int i = 0; i < img->x; i++){
+                img2->data[i] = malloc(img->y * sizeof(PPMPixel));
+                for (int j = 0; j < img->y; j++) {
+                        int temp = 0;
+                        temp += img->data[i][j].red;
+                        temp += img->data[i][j].green;
+                        temp += img->data[i][j].blue;
+                        temp = (int)temp/3;
+                        img->data[i][j].red = temp;
+                        img->data[i][j].green = temp;
+                        img->data[i][j].blue = temp;
                 }
         }
+        img2->x = img->x;
+        img2->y = img->y;
+        if(img){
+                for (int i = 0; i < img2->x; i++) {
+                        int * pixels = malloc(9 * sizeof(int));
+                        int temp = 0;
+                        for (int j = 0; j < img2->y; j++){
+                                for (int l = 0; l < 9; l++)
+                                        pixels[l] = -1;
+                                if (i == 0) {
+                                        pixels[0] = 0;
+                                        pixels[3] = 0;
+                                        pixels[6] = 0;
+                                }
+                                if (j == 0) {
+                                        pixels[0] = 0;
+                                        pixels[1] = 0;
+                                        pixels[2] = 0;
+                                }
+                                if (i == img2->x - 1) {
+                                        pixels[2] = 0;
+                                        pixels[5] = 0;
+                                        pixels[8] = 0;
+                                }
+                                if (j == img2->y - 1) {
+                                        pixels[6] = 0;
+                                        pixels[7] = 0;
+                                        pixels[8] = 0;
+                                }
+                                for (int k = 0; k < 9; k++) {
+                                        printf("%d %d\n", i + (k / 3), j + (k % 3));
+                                        if (pixels[k] != 0) {
+                                                pixels[k] = img->data[i + (k / 3)][j + (k % 3)].red;
+                                        }
+                                }
+                                int g_x = (pixels[6] + 2*pixels[7] + pixels[8]) - (pixels[0] + 2*pixels[1] + pixels[2]);
+                                int g_y = (pixels[2] + 2*pixels[5] + pixels[8]) - (pixels[0] + 2*pixels[3] + pixels[6]);
+                                int res = (int)sqrt(g_x * g_x + g_y * g_y);
+                                temp += res;
+                                temp = (int)temp/3;
+                                img2->data[i][j].red = temp;
+                                img2->data[i][j].green = temp;
+                                img2->data[i][j].blue = temp;
+                        }
+                }
+        }
+        return img2;
 }
-*/
+
 int main(){
         clock_t begin = clock();
-        PPMImage *in;
-        in = readPPM("img.ppm");
+        PPMImage *in_image;
+        in_image = readPPM("img.ppm");
         PPMImage *out_image;
-        writePPM("out.ppm",in);
+        out_image = sobel_operator(in_image);
+        writePPM("out.ppm",out_image);
         clock_t end = clock();
         double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
         printf("Extecution time: %.1lf ms\n", time_spent * 1000);
