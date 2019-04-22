@@ -1,5 +1,6 @@
-#include<stdio.h>
-#include<stdlib.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
 typedef struct {
         unsigned char red,green,blue;
@@ -108,8 +109,8 @@ void writePPM(const char *filename, PPMImage *img)
         }
         fclose(fp);
 }
-/*
-void sobel_operator(PPMImage *img. PPMImage *img2)
+
+/*void sobel_operator(PPMImage *img, PPMImage *img2)
 {
         int i;
         if(img){
@@ -138,10 +139,12 @@ void sobel_operator(PPMImage *img. PPMImage *img2)
 }
 */
 int main(){
-        PPMImage *image;
-        image = readPPM("img.ppm");
+        clock_t begin = clock();
+        PPMImage *in;
+        in = readPPM("img.ppm");
         PPMImage *out_image;
-        writePPM("out.ppm",image);
-        printf("Press any key...");
-        getchar();
+        writePPM("out.ppm",in);
+        clock_t end = clock();
+        double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+        printf("Extecution time: %.1lf ms\n", time_spent * 1000);
 }
